@@ -7,32 +7,35 @@ Passmark uses AI models to execute natural language steps via Playwright, with i
 ## Quick Start
 
 ```bash
-npm init playwright@latest # select the default options and set language to TypeScript
-cd <your-project>
+npm init playwright@latest passmark-project # select the default options and set language to TypeScript
+cd passmark-project
 npm install passmark
 ```
 
 We need at least one model from Anthropic and one from Google to use Passmark's multi-model consensus features. Set the required environment variables in `.env`:
 
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-export GOOGLE_GENERATIVE_AI_API_KEY=AIza...
+```
+ANTHROPIC_API_KEY=sk-ant-...
+GOOGLE_GENERATIVE_AI_API_KEY=AIza...
 ```
 
-Set your Playwright project to read `.env` by adding the following to `playwright.config.ts`:
+Alternatively, you can use an AI gateway like Vercel AI Gateway to route requests to multiple providers without managing individual API keys. If you choose this option, set `AI_GATEWAY_API_KEY` instead. Note: we support only Vercel AI Gateway at the moment, but we're planning to add support for other gateways in the future.
+
+Set your Playwright project to read `.env` by adding the following to `playwright.config.ts`  (after `import { defineConfig, devices } from '@playwright/test';`):
 
 ```typescript
-import { defineConfig } from '@playwright/test';
 import dotenv from 'dotenv';
 import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 ```
 
-Basic usage with Playwright:
+Make sure you install `dotenv` by running `npm install dotenv`.
+
+Now, paste the following code into `tests/example.spec.ts`:
 
 ```typescript
-import { test } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { runSteps } from "passmark";
 
 test.use({
@@ -40,6 +43,7 @@ test.use({
 });
 
 test("Shopping cart tests", async ({ page }) => {
+  test.setTimeout(60_000); // increase timeout for AI execution
   await runSteps({
     page,
     userFlow: "Add product to cart",
@@ -57,7 +61,25 @@ test("Shopping cart tests", async ({ page }) => {
 });
 ```
 
-You can run `npx playwright show-report` to see a detailed report of the test execution, including an AI summary at the top, provided by Passmark.
+If you are using Vercel AI Gateway, you can add the following to the above code:
+
+```typescript
+import { runSteps, configure } from "passmark";
+
+configure({
+  ai: {
+    gateway: "vercel" // Make sure to set AI_GATEWAY_API_KEY in your .env file
+  }
+});
+```
+
+To run the test, use:
+
+```bash
+npx playwright test example.spec.ts --project chromium
+```
+
+After the test completes, you can run `npx playwright show-report` to see a detailed report of the test execution, including an AI summary at the top, provided by Passmark.
 
 ## Features
 
