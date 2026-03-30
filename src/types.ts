@@ -19,7 +19,6 @@ export type UserFlowOptions = {
   page: Page;
   userFlow: string;
   steps: string;
-  website: string;
 
   // optional fields
   assertion?: string;
@@ -111,9 +110,9 @@ export type RunStepsOptions = {
    */
   executionId?: string;
 } & (
-  | {
+    | {
       assertions: Omit<AssertionOptions, "page" | "test" | "expect">[];
       expect: Expect<{}>;
     }
-  | { assertions?: never; expect?: never }
-);
+    | { assertions?: never; expect?: never }
+  );

@@ -118,8 +118,7 @@ export const runSteps = async ({
   const isPlaywrightRetry = test ? test.info().retry > 0 : false;
   if (isPlaywrightRetry) {
     logger.debug(
-      `Playwright retry detected (retry #${
-        test!.info().retry
+      `Playwright retry detected (retry #${test!.info().retry
       }). Bypassing cache and using AI only.`,
     );
   }
@@ -541,7 +540,6 @@ export const runSteps = async ({
  * @param options.page - The Playwright page instance
  * @param options.userFlow - Description of the user flow to execute
  * @param options.steps - Natural language description of steps to perform
- * @param options.website - The target website URL
  * @param options.effort - "low" uses a faster model, "high" uses a more capable model with deeper thinking
  * @param options.assertion - Optional assertion to verify after the flow completes
  * @returns The assertion result if an assertion was provided, the raw AI text response otherwise, or undefined on error
@@ -552,7 +550,6 @@ export const runSteps = async ({
  *   page,
  *   userFlow: "Complete a purchase",
  *   steps: "Navigate to store, add an item, checkout",
- *   website: "https://mystore.example.com",
  *   effort: "high",
  *   assertion: "Order confirmation is displayed",
  * });
@@ -563,7 +560,6 @@ export const runUserFlow = async ({
   userFlow,
   steps,
   assertion,
-  website,
   effort = "low",
   thinkingBudget = THINKING_BUDGET_DEFAULT,
 }: UserFlowOptions) => {
@@ -611,7 +607,6 @@ export const runUserFlow = async ({
           prompt: buildRunUserFlowPrompt({
             steps,
             userFlow,
-            website,
             assertion,
           }),
         });
