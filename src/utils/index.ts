@@ -6,7 +6,7 @@ import {
   PlaywrightWorkerOptions,
   TestType,
 } from "@playwright/test";
-import { generateObject } from "ai";
+import { generateText, Output } from "ai";
 import { createHash } from "crypto";
 import { z } from "zod";
 import { getModelId } from "../config";
@@ -285,7 +285,7 @@ ${condition}
 Analyze the attached before and after screenshots and determine if the wait condition has been met.
 `;
 
-    const { object } = await generateObject({
+    const { output } = await generateText({
       model: resolveModel(getModelId("utility")),
       temperature: 0,
       messages: [
@@ -298,10 +298,10 @@ Analyze the attached before and after screenshots and determine if the wait cond
           ],
         },
       ],
-      schema: waitConditionSchema,
+      output: Output.object({ schema: waitConditionSchema }),
     });
 
-    return object;
+    return output;
   };
 
   while (Date.now() - startTime < timeout) {

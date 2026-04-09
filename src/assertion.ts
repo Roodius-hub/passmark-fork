@@ -1,4 +1,4 @@
-import { generateObject, generateText, ModelMessage } from "ai";
+import { generateText, ModelMessage, Output } from "ai";
 import { z } from "zod";
 import { getModelId } from "./config";
 import { ASSERTION_MODEL_TIMEOUT, THINKING_BUDGET_DEFAULT } from "./constants";
@@ -11,8 +11,6 @@ const assertionSchema = z.object({
   assertionPassed: z.boolean().describe("Indicates whether the assertion passed or not."),
   confidenceScore: z
     .number()
-    .min(0)
-    .max(100)
     .describe("Confidence score of the assertion, between 0 and 100."),
   reasoning: z
     .string()
@@ -65,33 +63,31 @@ export const assert = async ({
     const imageContent = images
       ? images.map((image) => ({ type: "image" as const, image }))
       : [
-          {
-            type: "image" as const,
-            image: (await page.screenshot({ fullPage: false })).toString("base64"),
-          },
-        ];
+        {
+          type: "image" as const,
+          image: (await page.screenshot({ fullPage: false })).toString("base64"),
+        },
+      ];
 
     const basePrompt = `
 You are an AI-powered QA Agent designed to test web applications.
             
 You have access to the following information. Based on this information, you'll tell us whether the assertion provided below should pass or not.
-${
-  !images
-    ? `
+${!images
+        ? `
 - An accessibility snapshot of the current page, which provides a detailed structure of the DOM
 - A screenshot of the current page`
-    : "- Screenshots from various stages of the user flow"
-}
+        : "- Screenshots from various stages of the user flow"
+      }
 
-${
-  !images
-    ? `
+${!images
+        ? `
 <Snapshot>
 ${snapshot}
 </Snapshot>
 `
-    : ""
-}
+        : ""
+      }
 
 <Assertion>
 ${assertion}
@@ -137,44 +133,44 @@ Never hallucinate. Be truthful and if you are not sure, use a low confidence sco
         temperature: 0,
         providerOptions: thinkingEnabled
           ? {
-              anthropic: {
-                thinking: { type: "enabled", budgetTokens: THINKING_BUDGET_DEFAULT },
-              },
-            }
+            anthropic: {
+              thinking: { type: "enabled", budgetTokens: THINKING_BUDGET_DEFAULT },
+            },
+          }
           : undefined,
         messages,
       });
 
       // Convert Claude's response to structured format using Haiku
-      const { object } = await generateObject({
+      const { output } = await generateText({
         model: resolveModel(getModelId("assertionPrimary")),
         temperature: 0.1,
         prompt: `Convert the following text output into a valid JSON object with the specified properties:\n\n${text}`,
-        schema: assertionSchema,
+        output: Output.object({ schema: assertionSchema }),
       });
 
-      return object;
+      return output;
     };
 
     // Gemini assertion function
     const getGeminiAssertion = async (): Promise<AssertionResult> => {
-      const { object } = await generateObject({
+      const { output } = await generateText({
         model: resolveModel(getModelId("assertionSecondary")),
         temperature: 0,
         providerOptions: thinkingEnabled
           ? {
-              google: {
-                thinkingConfig: {
-                  thinkingBudget: THINKING_BUDGET_DEFAULT,
-                },
+            google: {
+              thinkingConfig: {
+                thinkingBudget: THINKING_BUDGET_DEFAULT,
               },
-            }
+            },
+          }
           : undefined,
         messages,
-        schema: assertionSchema,
+        output: Output.object({ schema: assertionSchema }),
       });
 
-      return object;
+      return output;
     };
 
     // Arbiter function using Gemini 2.5 Pro with thinking enabled
@@ -195,15 +191,14 @@ Gemini's Assessment:
 - Confidence: ${geminiResult.confidenceScore}%
 - Reasoning: ${geminiResult.reasoning}
 
-${
-  !images
-    ? `
+${!images
+          ? `
 <Snapshot>
 ${snapshot}
 </Snapshot>
 `
-    : ""
-}
+          : ""
+        }
 
 <Assertion>
 ${assertion}
@@ -238,7 +233,7 @@ Please carefully review the evidence (screenshot and accessibility snapshot (whe
         },
       ];
 
-      const { object } = await generateObject({
+      const { output } = await generateText({
         model: resolveModel(getModelId("assertionArbiter")),
         temperature: 0,
         providerOptions: {
@@ -249,10 +244,10 @@ Please carefully review the evidence (screenshot and accessibility snapshot (whe
           },
         },
         messages: arbiterMessages,
-        schema: assertionSchema,
+        output: Output.object({ schema: assertionSchema }),
       });
 
-      return object;
+      return output;
     };
 
     const runAssertion = async (attempt = 0): Promise<AssertionResult> => {
