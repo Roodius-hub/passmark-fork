@@ -8,7 +8,7 @@ import {
   PlaywrightWorkerOptions,
   TestType,
 } from "@playwright/test";
-import { generateObject, generateText, stepCountIs } from "ai";
+import { generateText, Output, stepCountIs } from "ai";
 import { withSpan } from "axiom/ai";
 import shortid from "shortid";
 import { axiomEnabled } from "./instrumentation";
@@ -394,6 +394,11 @@ export const runSteps = async ({
                   thinkingLevel: "medium",
                 },
               },
+              openrouter: {
+                reasoning: {
+                  effort: "medium",
+                },
+              },
             },
             onStepFinish: async ({ toolCalls }) => {
               if (!onReasoning) return;
@@ -589,6 +594,11 @@ export const runUserFlow = async ({
                 thinkingBudget,
               },
             },
+            openrouter: {
+              reasoning: {
+                max_tokens: thinkingBudget,
+              },
+            },
           },
           stopWhen: stepCountIs(USER_FLOW_MAX_STEPS),
           abortSignal: abortController.signal,
@@ -614,23 +624,23 @@ export const runUserFlow = async ({
     );
 
     if (assertion) {
-      const { object } = await generateObject({
+      const { output } = await generateText({
         model: resolveModel(getModelId("utility")),
         prompt: `Convert the following text output into a valid JSON object with the specified properties:\n\n${text}`,
-        schema: z.object({
-          assertionPassed: z.boolean().describe("Indicates whether the assertion passed or not."),
-          confidenceScore: z
-            .number()
-            .min(0)
-            .max(100)
-            .describe("Confidence score of the assertion, between 0 and 100."),
-          reasoning: z
-            .string()
-            .describe("Brief explanation of the reasoning behind the assertion."),
+        output: Output.object({
+          schema: z.object({
+            assertionPassed: z.boolean().describe("Indicates whether the assertion passed or not."),
+            confidenceScore: z
+              .number()
+              .describe("Confidence score of the assertion, between 0 and 100."),
+            reasoning: z
+              .string()
+              .describe("Brief explanation of the reasoning behind the assertion."),
+          }),
         }),
       });
 
-      return object;
+      return output;
     }
 
     return text;

@@ -17,8 +17,7 @@ vi.mock("ai", async (importOriginal) => {
   const actual = await importOriginal<typeof import("ai")>();
   return {
     ...actual,
-    generateText: vi.fn().mockResolvedValue({ text: "done", steps: [] }),
-    generateObject: vi.fn().mockResolvedValue({ object: {} }),
+    generateText: vi.fn().mockResolvedValue({ text: "done", steps: [], output: {} }),
     streamText: vi.fn(),
   };
 });

@@ -1,4 +1,4 @@
-import { generateObject } from "ai";
+import { generateText, Output } from "ai";
 import { z } from "zod";
 import { getModelId } from "./config";
 import { resolveModel } from "./models";
@@ -35,10 +35,10 @@ export async function extractDataWithAI({
   url: string;
   prompt: string;
 }): Promise<string> {
-  const { object } = await generateObject({
+  const { output } = await generateText({
     model: resolveModel(getModelId("utility")),
     temperature: 0,
-    schema: extractionSchema,
+    output: Output.object({ schema: extractionSchema }),
     prompt: `You are an AI assistant that extracts specific data from web pages.
 
 Given the following page snapshot and URL, extract the value described in the extraction prompt.
@@ -66,5 +66,5 @@ ${prompt}
 Return the extracted value.`,
   });
 
-  return object.extractedValue;
+  return output.extractedValue;
 }

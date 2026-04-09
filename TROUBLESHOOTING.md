@@ -116,7 +116,3 @@ If you've tried the steps above and still can't get past a problem, open an issu
 - `.env.example` — suggested env vars
 - `src/models.ts` — model resolution and API key handling
 - `src/config.ts` — how to call `configure()`
-
----
-
-If you'd like, I can add a short link to this guide from the `README.md` or `CONTRIBUTING.md` as a follow-up.
