@@ -408,6 +408,7 @@ export const runSteps = async ({
               openrouter: {
                 reasoning: {
                   effort: "medium",
+                  exclude: true
                 },
               },
             },
