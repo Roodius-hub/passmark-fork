@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `maxRetries` option to `AssertionOptions` (default: `1`) to control how many times a failed assertion is retried with a fresh page snapshot and screenshot. Setting it to `0` disables retries.
+- `onRetry` callback to `AssertionOptions` that fires before each retry, receiving the retry index and the full `AssertionResult` from the previous attempt for debugging flaky assertions.
+
 ## [1.0.0] - 2026-03-27
 
 ### Added
