@@ -532,6 +532,8 @@ export const runSteps = async ({
         effort,
         images,
         failSilently: failAssertionsSilently,
+        maxRetries: 1,
+        onRetry: (retryCount, previousResult) => {},
       });
 
       if (onReasoning) {
