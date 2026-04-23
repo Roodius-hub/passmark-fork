@@ -1,5 +1,7 @@
 import { StepExecutionError, ValidationError } from "./errors";
 import "./instrumentation"; // For Axiom AI instrumentation
+import env from "dotenv";
+env.config();
 
 import {
   PlaywrightTestArgs,
